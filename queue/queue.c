@@ -17,17 +17,26 @@ typedef struct Node {
 
 typedef struct Queue {
 	int length;
-	struct Node *front;
-	struct Node *back;
+	Node *front;
+	Node *back;
 } Queue;
 
 
 xcode Queue_create(Queue **Q) {
 	*Q = malloc(sizeof(Queue));
 	
-	(*Q)->length = 0;
-	(*Q)->front = NULL;
-	(*Q)->back = NULL;
+	if (*Q == NULL) return X_ALLOC_FAILURE;
+	
+	return Queue_init(*Q);
+}
+
+
+xcode Queue_init(Queue *Q) {
+	if (Q == NULL) return X_NULL_PARAM;
+	
+	Q->length = 0;
+	Q->front = NULL;
+	Q->back = NULL;
 	
 	return X_SUCCESS;
 }
@@ -152,7 +161,6 @@ int main(int argc, char *argv[]) {
 	
 	x = Queue_create(&Q);
 	if (x) printf("TEST: create error %d\n",x);
-	printf("length: %d\n",Q->length);
 	
 	x = Queue_push_test(Q);
 	x = Queue_pop_test(Q);
