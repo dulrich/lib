@@ -1,111 +1,168 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-struct Stack {
-	int data;
-	struct Stack *next;
+typedef int xcode;
+
+enum {
+	 X_SUCCESS
+	,X_NULL_PARAM
+	,X_ALLOC_FAILURE
+	,X_STACK_UNDERFLOW
 };
 
-void Stack_destroy(struct Stack **head) {
-	struct Stack *next;
+typedef struct Node {
+	int data;
+	struct Node *next;
+} Node;
+
+typedef struct Stack {
+	int length;
+	Node *front;
+} Stack;
+
+
+xcode Stack_create(Stack **S) {
+	*S = malloc(sizeof(Stack));
 	
-	if (*head == NULL) {
-		printf("WARNING: stack already NULL");
-		return;
-	}
+	if (*S == NULL) return X_ALLOC_FAILURE;
 	
-	do {
-		next = (*head)->next;
-		free(*head);
-		*head = next;
-	} while (*head != NULL);
+	return Stack_init(*S);
 }
 
 
-void Stack_push(int data, struct Stack **head) {
-	struct Stack *node = malloc(sizeof(struct Stack));
+xcode Stack_init(Stack *S) {
+	if (S == NULL) return X_NULL_PARAM;
 	
-	if(node == NULL) {
+	S->length = 0;
+	S->front = NULL;
+	
+	return X_SUCCESS;
+}
+
+
+xcode Stack_destroy(Stack *S) {
+	Node *N;
+	
+	if (S == NULL) return X_NULL_PARAM;
+	
+	while (S->front != NULL) {
+		N = S->front->next;
+		free(S->front);
+		S->front = N;
+	}
+	
+	free(S);
+	
+	return X_SUCCESS;
+}
+
+
+xcode Stack_push(Stack *S, int data) {
+	Node *N = malloc(sizeof(Node));
+	
+	if(N == NULL) {
 		printf("ERROR: failed to create node");
-		exit(1);
-	} else {
-		node->data = data;
-		node->next = (head == NULL) ? NULL : *head;
-		
-		*head = node;
+		return X_ALLOC_FAILURE;
 	}
+	
+	N->data = data;
+	N->next = S->front;
+	S->front = N;
+	
+	S->length++;
+	
+	return X_SUCCESS;
 }
 
 
-int Stack_pop(struct Stack **head) {
-	if(head == NULL) {
-		printf("ERROR: stack underflow");
-		exit(2);
-	} else {
-		struct Stack *top = *head;
-		int value = top->data;
-		*head = top->next;
-		free(top);
-		return value;
-	}
+xcode Stack_pop(Stack *S, int *data) {
+	Node *N;
+	
+	if (S == NULL) return X_NULL_PARAM;
+	
+	if (S->front == NULL) return X_STACK_UNDERFLOW;
+	
+	*data = S->front->data;
+	
+	N = S->front->next;
+	free(S->front);
+	S->front = N;
+	
+	S->length--;
+	
+	return X_SUCCESS;
 }
 
 
-struct Stack *Stack_push_test() {
-	struct Stack *stack = malloc(sizeof(struct Stack));
+xcode Stack_push_test(Stack *S) {
+	int i;
+	xcode x;
 	
 	printf("TEST: Start push test\n");
 	
-	stack->data = 3;
-	stack->next = NULL;
-	
-	Stack_push(4,&stack);
-	Stack_push(5,&stack);
+	for(i=3;i<6;i++) {
+		x = Stack_push(S,i);
+		if (x) printf("TEST: push error %d\n",x);
+		else printf("TEST: Pushed %d\n", i);
+	}
 	
 	printf("TEST: End push test\n");
 	
-	return stack;
+	return X_SUCCESS;
 }
 
 
-void Stack_pop_test(struct Stack **head) {
+xcode Stack_pop_test(Stack *S) {
+	int v;
+	xcode x;
+	
 	printf("TEST: Start pop test\n");
 	
-	if (*head == NULL) {
-		printf("ERROR: Cannot pop test NULL Stack");
-		return;
-	}
-	
 	do {
-		printf("TEST: Popped %d\n", Stack_pop(head));
-	} while(*head != NULL);
-	
-	free(*head);
+		x = Stack_pop(S,&v);
+		if (x) {
+			
+			printf("length: %d\n",S->length);
+			break;
+		}
+		if (x) printf("TEST: pop error %d\n",x);
+		else printf("TEST: Popped %d\n", v);
+	} while(S->length > 0);
 	
 	printf("TEST: End pop test\n");
+	
+	return X_SUCCESS;
 }
 
 
-void Stack_destroy_test(struct Stack **head) {
+xcode Stack_destroy_test(Stack *S) {
+	xcode x;
+	
 	printf("TEST: Start destroy test\n");
 	
-	if (*head == NULL) {
-		printf("ERROR: Cannot destroy test NULL Stack");
-		return;
-	}
-	
-	Stack_destroy(head);
+	x = Stack_destroy(S);
 	
 	printf("TEST: End destroy test\n");
+	
+	return x;
 }
 
 
 int main(int argc, char *argv[]) {
-	struct Stack *stack = Stack_push_test();
-	Stack_pop_test(&stack);
+	Stack *S;
+	xcode x;
 	
-	stack = Stack_push_test();
-	Stack_destroy_test(&stack);
+	x = Stack_create(&S);
+	if (x) {
+		printf("TEST: create error %d\n",x);
+		return x;
+	}
+	
+	x = Stack_push_test(S);
+	x = Stack_pop_test(S);
+	
+	x = Stack_push_test(S);
+	x = Stack_destroy_test(S);
 	
 	return 0;
 }
