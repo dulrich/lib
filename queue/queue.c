@@ -22,15 +22,6 @@ typedef struct Queue {
 } Queue;
 
 
-xcode Queue_create(Queue **Q) {
-	*Q = malloc(sizeof(Queue));
-	
-	if (*Q == NULL) return X_ALLOC_FAILURE;
-	
-	return Queue_init(*Q);
-}
-
-
 xcode Queue_init(Queue *Q) {
 	if (Q == NULL) return X_NULL_PARAM;
 	
@@ -39,6 +30,15 @@ xcode Queue_init(Queue *Q) {
 	Q->back = NULL;
 	
 	return X_SUCCESS;
+}
+
+
+xcode Queue_create(Queue **Q) {
+	*Q = malloc(sizeof(Queue));
+	
+	if (*Q == NULL) return X_ALLOC_FAILURE;
+	
+	return Queue_init(*Q);
 }
 
 
@@ -155,7 +155,7 @@ xcode Queue_destroy_test(Queue *Q) {
 }
 
 
-int main(int argc, char *argv[]) {
+int main(/*int argc, char *argv[]*/) {
 	Queue *Q;
 	xcode x;
 	

@@ -21,15 +21,6 @@ typedef struct Stack {
 } Stack;
 
 
-xcode Stack_create(Stack **S) {
-	*S = malloc(sizeof(Stack));
-	
-	if (*S == NULL) return X_ALLOC_FAILURE;
-	
-	return Stack_init(*S);
-}
-
-
 xcode Stack_init(Stack *S) {
 	if (S == NULL) return X_NULL_PARAM;
 	
@@ -37,6 +28,15 @@ xcode Stack_init(Stack *S) {
 	S->front = NULL;
 	
 	return X_SUCCESS;
+}
+
+
+xcode Stack_create(Stack **S) {
+	*S = malloc(sizeof(Stack));
+	
+	if (*S == NULL) return X_ALLOC_FAILURE;
+	
+	return Stack_init(*S);
 }
 
 
@@ -148,7 +148,7 @@ xcode Stack_destroy_test(Stack *S) {
 }
 
 
-int main(int argc, char *argv[]) {
+int main(/*int argc, char *argv[]*/) {
 	Stack *S;
 	xcode x;
 	
