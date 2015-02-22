@@ -1,6 +1,19 @@
 # lib
 An assortment of structure and algorithm implementations for amusement, use in other projects, or comparison.
 
+
+# implementations
+
+To compile and test a particular structure, `struct`, run `cd <path>/lib/struct && make`.
+The following data types are algorithms are currently represented.
+
+
+## linked structures
+
+* stack
+* queue
+
+
 # license / copying
 
 lib is copyright (C) 2015  David Ulrich.
