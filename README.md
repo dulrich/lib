@@ -10,8 +10,9 @@ The following data types are algorithms are currently represented.
 
 ## linked structures
 
-* stack
+* list (doubly linked)
 * queue
+* stack
 
 
 # license / copying

@@ -67,8 +67,8 @@ xcode Stack_push(Stack *S, int data) {
 	
 	N->data = data;
 	N->next = S->front;
-	S->front = N;
 	
+	S->front = N;
 	S->length++;
 	
 	return X_SUCCESS;
@@ -120,11 +120,7 @@ xcode Stack_pop_test(Stack *S) {
 	
 	do {
 		x = Stack_pop(S,&v);
-		if (x) {
-			
-			printf("length: %d\n",S->length);
-			break;
-		}
+		
 		if (x) printf("TEST: pop error %d\n",x);
 		else printf("TEST: Popped %d\n", v);
 	} while(S->length > 0);
