@@ -99,6 +99,55 @@ xcode List_push_back(List *L, int data) {
 }
 
 
+xcode List_insert(List *L, int data, int pos) {
+	int i;
+	Node *it, *N;
+	
+	if (L == NULL) return X_NULL_PARAM;
+	
+	// handle insertions at front and back
+	if (pos == 0) {
+		return List_push_front(L,data);
+	}
+	else if (pos >= L->length) {
+		return List_push_back(L,data);
+	}
+	
+	N = malloc(sizeof(Node));
+	
+	if(N == NULL) {
+		printf("ERROR: failed to create node");
+		return X_ALLOC_FAILURE;
+	}
+	
+	N->data = data;
+	N->prev = NULL;
+	N->next = NULL;
+	
+	it = L->front;
+	for(i=1;i<L->length;i++) {
+		if (pos == i) {
+			if (it->next != NULL) {
+				it->next->prev = N;
+				N->next = it->next;
+			}
+
+			it->next = N;
+			N->prev = it;
+			
+			L->length++;
+			
+			break;
+		}
+		else {
+			it = it->next;
+		}
+	}
+	
+	return X_SUCCESS;
+}
+
+
 xcode List_pop_front(List *L, int *data) {
 	Node *N;
 	
@@ -140,6 +189,8 @@ xcode List_pop_back(List *L, int *data) {
 	return X_SUCCESS;
 }
 
+
+/* TESTS SECTION */
 xcode List_push_front_test(List *L) {
 	int i;
 	xcode x;
@@ -254,6 +305,25 @@ xcode List_pop_mixed_test(List *L) {
 }
 
 
+xcode List_insert_test(List *L) {
+	int i;
+	xcode x;
+	
+	printf("TEST: Start insert test\n");
+	
+	for(i=2;i<6;i++) {
+		x = List_insert(L,i,i%3);
+		
+		if (x) printf("TEST: push error %d\n",x);
+		else printf("TEST: Pushed %d at %d\n", i, i%3);
+	}
+	
+	printf("TEST: End insert test\n");
+	
+	return x;
+}
+
+
 xcode List_destroy_test(List *L) {
 	xcode x;
 	
@@ -286,7 +356,10 @@ int main(/*int argc, char *argv[]*/) {
 	x = List_push_mixed_test(L);
 	x = List_pop_mixed_test(L);
 	
-	x = List_push_front_test(L);
+	x = List_insert_test(L);
+	x = List_pop_front_test(L);
+	
+	x = List_insert_test(L);
 	x = List_destroy_test(L);
 	
 	return 0;
