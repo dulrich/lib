@@ -45,14 +45,18 @@ xcode List_destroy(List *L) {
 	}
 	
 	free(L);
+	L = NULL;
 	
 	return X_SUCCESS;
 }
 
 
 xcode List_push_front(List *L, int data) {
-	Node *N = malloc(sizeof(Node));
+	Node *N;
 	
+	if (L == NULL) return X_NULL_PARAM;
+	
+	N = malloc(sizeof(Node));
 	if(N == NULL) {
 		printf("ERROR: failed to create node");
 		return X_ALLOC_FAILURE;
@@ -75,8 +79,11 @@ xcode List_push_front(List *L, int data) {
 }
 
 xcode List_push_back(List *L, int data) {
-	Node *N = malloc(sizeof(Node));
+	Node *N;
 	
+	if (L == NULL) return X_NULL_PARAM;
+	
+	N = malloc(sizeof(Node));
 	if (N == NULL) {
 		printf("ERROR: failed to create node");
 		return X_ALLOC_FAILURE;
@@ -114,7 +121,6 @@ xcode List_insert(List *L, int data, int pos) {
 	}
 	
 	N = malloc(sizeof(Node));
-	
 	if(N == NULL) {
 		printf("ERROR: failed to create node");
 		return X_ALLOC_FAILURE;
