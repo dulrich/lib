@@ -44,14 +44,18 @@ xcode Queue_destroy(Queue *Q) {
 	}
 	
 	free(Q);
+	Q = NULL;
 	
 	return X_SUCCESS;
 }
 
 
 xcode Queue_push(Queue *Q, int data) {
-	Node *N = malloc(sizeof(Node));
+	Node *N;
 	
+	if (Q == NULL) return X_NULL_PARAM;
+	
+	N = malloc(sizeof(Node));
 	if(N == NULL) {
 		printf("ERROR: failed to create node");
 		return X_ALLOC_FAILURE;
