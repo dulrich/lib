@@ -17,6 +17,42 @@
 array_input = [2,5,7,3,87,34,67,40,29,47,4]
 
 
+def sort_heap(arr):
+	arr = sort_heap_heapify(arr,len(arr))
+	end = len(arr) - 1
+	while end > 0:
+		swap = arr[end]
+		arr[end] = arr[0]
+		arr[0] = swap
+		end -= 1
+		arr = sort_heap_sift_down(arr,0,end)
+	return arr
+
+def sort_heap_heapify(arr,length):
+	start = (length - 2) / 2
+	while start >= 0:
+		arr = sort_heap_sift_down(arr,start,length - 1)
+		start -= 1
+	return arr
+
+def sort_heap_sift_down(arr,start,end):
+	while start * 2 + 1 <= end:
+		child = start * 2 + 1
+		swap = start
+		if arr[swap] < arr[child]:
+			swap = child
+		if child + 1 <= end and arr[swap] < arr[child + 1]:
+			swap = child + 1
+		if swap == start:
+			break
+		else:
+			temp = arr[swap]
+			arr[swap] = arr[start]
+			arr[start] = temp
+			start = swap
+	return arr
+
+
 def sort_merge(arr):
 	return sort_merge_split(arr,0,len(arr),list(arr))[0]
 
@@ -24,11 +60,11 @@ def sort_merge_split(L,start,end,R):
 	if (end - start) < 2:
 		return (L,R)
 	mid = (end + start) / 2
-	LR = sort_merge_split(L,start,mid,R)
-	LR = sort_merge_split(LR[0],mid,end,LR[1])
-	LR = sort_merge_merge(LR[1],start,mid,end,LR[0])
-	LR = sort_merge_copy(LR[1],start,end,LR[0])
-	return LR
+	(L,R) = sort_merge_split(L,start,mid,R)
+	(L,R) = sort_merge_split(L,mid,end,R)
+	(L,R) = sort_merge_merge(R,start,mid,end,L)
+	(L,R) = sort_merge_copy(R,start,end,L)
+	return (L,R)
 
 def sort_merge_merge(L,start,mid,end,R):
 	iL = start
@@ -84,3 +120,5 @@ array_merge = sort_merge(array_input)
 print "merge: {0}".format(array_merge)
 array_quick = sort_quick(array_input)
 print "quick: {0}".format(array_quick)
+array_heap  = sort_heap(array_input)
+print "heap:  {0}".format(array_heap)
