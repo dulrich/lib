@@ -25,7 +25,7 @@ struct Node {
 	Test test;
 };
 
-ecode pattern_create(struct Node* pattern[],int* length,const char* raw) {
+ecode pattern_create(struct Node* pattern,int* length,const char* raw) {
 	int i,l;
 	
 	l = strlen(raw);
@@ -35,8 +35,9 @@ ecode pattern_create(struct Node* pattern[],int* length,const char* raw) {
 	}
 	
 	for(i = 0;i < l;i++) {
-		pattern[i]->pattern = raw[i];
-		pattern[i]->test = TEST_NONE;
+		debug("creating node %d (%c)",i,raw[i]);
+		pattern[i].pattern = raw[i];
+		pattern[i].test = TEST_NONE;
 	}
 	
 	*length = i;
@@ -44,24 +45,28 @@ ecode pattern_create(struct Node* pattern[],int* length,const char* raw) {
 	return STATUS_SUCCESS;
 }
 
-int pattern_match(struct Node* pattern[],const int length,const char* input) {
+int pattern_match(struct Node* pattern,const int length,const char* input) {
 	int i,l;
 	int n = 0;
 	
 	l = strlen(input);
 	
 	for(i = 0;i < l;i++) {
-		if (input[i] == pattern[n]->pattern) {
+		if (input[i] == pattern[n].pattern) {
 			n++;
-			// debug("incremented n to %d",n);
+			debug("incremented n to %d",n);
+		}
+		else if (input[i] == pattern[0].pattern) {
+			debug("set n = 1");
+			n = 1;
 		}
 		else {
-			// debug("set n = 0");
+			debug("set n = 0");
 			n = 0;
 		}
 		
 		if (n == length) {
-			// debug("returning %d - %d = %d",i,n,i-n);
+			debug("returning %d - %d = %d",i,n,i-n+1);
 			return i - n + 1;
 		}
 	}
@@ -70,7 +75,7 @@ int pattern_match(struct Node* pattern[],const int length,const char* input) {
 }
 
 int main(int argc, char** argv) {
-	struct Node* pattern[100];
+	struct Node* pattern;
 	int pattern_length = 100;
 	
 	if (argc != 3) {
@@ -78,13 +83,13 @@ int main(int argc, char** argv) {
 		return STATUS_MISSING_ARGS;
 	}
 	
-	// pattern = (Node**)malloc(sizeof(Node) * pattern_length);
+	pattern = (struct Node*)malloc(sizeof(struct Node) * pattern_length);
 	
 	pattern_create(pattern,&pattern_length,argv[1]);
 	
 	debug("pattern starts at: %d",pattern_match(pattern,pattern_length,argv[2]));
 	
-	// free(pattern);
+	free(pattern);
 	
 	debug("done");
 	
