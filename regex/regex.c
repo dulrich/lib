@@ -5,6 +5,7 @@
 #endif
 
 #include <stdio.h>
+#include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -23,10 +24,11 @@ typedef enum {
 struct Node {
 	char pattern;
 	Test test;
+	uint8_t optional;
 };
 
 ecode pattern_create(struct Node* pattern,int* length,const char* raw) {
-	int i,l;
+	int i,l,n;
 	
 	l = strlen(raw);
 	
@@ -34,13 +36,24 @@ ecode pattern_create(struct Node* pattern,int* length,const char* raw) {
 		return STATUS_RAW_PATTERN_TOO_LONG;
 	}
 	
-	for(i = 0;i < l;i++) {
-		debug("creating node %d (%c)",i,raw[i]);
-		pattern[i].pattern = raw[i];
-		pattern[i].test = TEST_NONE;
+	for(i = 0,n = 0;i < l;i++) {
+		debug("processing node %d (%c)",i,raw[i]);
+		
+		switch(raw[i]) {
+		case '?':
+			debug("set optional %d",n);
+			pattern[n - 1].optional = 1;
+			break;
+		default:
+			debug("set pattern %d (%c)",n,raw[i]);
+			pattern[n].pattern = raw[i];
+			pattern[n].test = TEST_NONE;
+			pattern[n].optional = 0;
+			n++;
+		}
 	}
 	
-	*length = i;
+	*length = n;
 	
 	return STATUS_SUCCESS;
 }
@@ -52,7 +65,9 @@ int pattern_match(struct Node* pattern,const int length,const char* input) {
 	l = strlen(input);
 	
 	for(i = 0;i < l;i++) {
-		if (input[i] == pattern[n].pattern) {
+		debug("state %d %c %d",n,pattern[n].pattern,pattern[n].optional);
+		
+		if (input[i] == pattern[n].pattern || pattern[n].optional != 0) {
 			n++;
 			debug("incremented n to %d",n);
 		}
