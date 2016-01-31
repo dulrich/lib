@@ -74,7 +74,7 @@ int pattern_match(struct Node* pattern,const int length,const char* input) {
 	struct Match *stack;
 	struct Match *matches;
 	struct Match *match;
-	int stack_pos = 0;
+	int stack_pos;
 	int matches_pos = 0;
 	
 	l = strlen(input);
@@ -86,10 +86,10 @@ int pattern_match(struct Node* pattern,const int length,const char* input) {
 	memset(matches,0,sizeof(*matches));
 	
 	for(i = 0;i < l;i++) {
+		stack_pos = i;
 		stack[i].pos_start = -1;
 		stack[i].pos_cur   =  i;
 		stack[i].index     =  0;
-		stack_pos++;
 	}
 	
 	while(stack_pos > 0) {
@@ -101,7 +101,11 @@ int pattern_match(struct Node* pattern,const int length,const char* input) {
 		}
 		
 		if (match->index == length && match->pos_start != -1) {
-			debug("setting match %d (%d to %d)",matches_pos,match->pos_start,match->pos_cur);
+			debug("setting match %d (%d to %d) from stack %d",
+				matches_pos,
+				match->pos_start,
+				match->pos_cur,
+				stack_pos);
 			
 			if (match->pos_start > 1) {
 				match->pos_start--;
@@ -129,7 +133,7 @@ int pattern_match(struct Node* pattern,const int length,const char* input) {
 			
 			stack[stack_pos].index = pattern[match->index].index_fail;
 			
-			debug("optional added to stack at %d",match->pos_cur);
+			debug("optional added to stack[%d] (%d to %d)",stack_pos,match->pos_start,match->pos_cur);
 		}
 		
 		if (input[match->pos_cur] == pattern[match->index].pattern) {
@@ -145,6 +149,7 @@ int pattern_match(struct Node* pattern,const int length,const char* input) {
 		}
 	}
 	
+	debug("===== matches =====");
 	for(i = 0;i < matches_pos;i++) {
 		debug("found match from %d to %d",matches[i].pos_start,matches[i].pos_cur);
 		// instead find best match
