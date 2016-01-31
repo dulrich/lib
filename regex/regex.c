@@ -103,6 +103,14 @@ int pattern_match(struct Node* pattern,const int length,const char* input) {
 		if (match->index == length && match->pos_start != -1) {
 			debug("setting match %d (%d to %d)",matches_pos,match->pos_start,match->pos_cur);
 			
+			if (match->pos_start > 1) {
+				match->pos_start--;
+			}
+			
+			if (match->pos_cur > 0) {
+				match->pos_cur--;
+			}
+			
 			matches[matches_pos].pos_start = match->pos_start;
 			matches[matches_pos].pos_cur   = match->pos_cur;
 			matches[matches_pos].index     = match->index;
