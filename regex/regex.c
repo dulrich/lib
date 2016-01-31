@@ -25,6 +25,14 @@ struct Node {
 	char pattern;
 	Test test;
 	uint8_t optional;
+	int index_match;
+	int index_fail;
+};
+
+struct Match {
+	int pos_start;
+	int pos_cur;
+	int index;
 };
 
 ecode pattern_create(struct Node* pattern,int* length,const char* raw) {
@@ -43,12 +51,15 @@ ecode pattern_create(struct Node* pattern,int* length,const char* raw) {
 		case '?':
 			debug("set optional %d",n);
 			pattern[n - 1].optional = 1;
+			pattern[n - 1].index_fail = n;
 			break;
 		default:
 			debug("set pattern %d (%c)",n,raw[i]);
 			pattern[n].pattern = raw[i];
 			pattern[n].test = TEST_NONE;
 			pattern[n].optional = 0;
+			pattern[n].index_match = n + 1;
+			pattern[n].index_fail = -1;
 			n++;
 		}
 	}
@@ -60,31 +71,79 @@ ecode pattern_create(struct Node* pattern,int* length,const char* raw) {
 
 int pattern_match(struct Node* pattern,const int length,const char* input) {
 	int i,l;
-	int n = 0;
+	struct Match *stack;
+	struct Match *matches;
+	struct Match *match;
+	int stack_pos = 0;
+	int matches_pos = 0;
 	
 	l = strlen(input);
 	
+	stack = malloc(100 * sizeof(*stack));
+	matches = malloc(100 * sizeof(*matches));
+	
+	memset(stack,0,sizeof(*stack));
+	memset(matches,0,sizeof(*matches));
+	
 	for(i = 0;i < l;i++) {
-		debug("state %d %c %d",n,pattern[n].pattern,pattern[n].optional);
+		stack[i].pos_start = -1;
+		stack[i].pos_cur   =  i;
+		stack[i].index     =  0;
+		stack_pos++;
+	}
+	
+	while(stack_pos > 0) {
+		match = &stack[stack_pos];
 		
-		if (input[i] == pattern[n].pattern || pattern[n].optional != 0) {
-			n++;
-			debug("incremented n to %d",n);
+		if (match->index == -1) {
+			stack_pos--;
+			continue;
 		}
-		else if (input[i] == pattern[0].pattern) {
-			debug("set n = 1");
-			n = 1;
+		
+		if (match->index == length && match->pos_start != -1) {
+			debug("setting match %d (%d to %d)",matches_pos,match->pos_start,match->pos_cur);
+			
+			matches[matches_pos].pos_start = match->pos_start;
+			matches[matches_pos].pos_cur   = match->pos_cur;
+			matches[matches_pos].index     = match->index;
+			
+			matches_pos++;
+			
+			stack_pos--;
+			continue;
+		}
+		
+		if (pattern[match->index].optional != 0) {
+			stack_pos++;
+			
+			stack[stack_pos].pos_cur = match->pos_cur;
+			stack[stack_pos].pos_start = match->pos_start;
+			
+			stack[stack_pos].index = pattern[match->index].index_fail;
+			
+			debug("optional added to stack at %d",match->pos_cur);
+		}
+		
+		if (input[match->pos_cur] == pattern[match->index].pattern) {
+			match->pos_cur++;
+			match->index = pattern[match->index].index_match;
+			
+			if (match->pos_start == -1) match->pos_start = match->pos_cur;
+			
+			debug("incremented pos_cur to %d",match->pos_cur);
 		}
 		else {
-			debug("set n = 0");
-			n = 0;
-		}
-		
-		if (n == length) {
-			debug("returning %d - %d = %d",i,n,i-n+1);
-			return i - n + 1;
+			match->index = -1;
 		}
 	}
+	
+	for(i = 0;i < matches_pos;i++) {
+		debug("found match from %d to %d",matches[i].pos_start,matches[i].pos_cur);
+		// instead find best match
+	}
+	
+	free(stack);
+	free(matches);
 	
 	return -1;
 }
