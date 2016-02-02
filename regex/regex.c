@@ -1,7 +1,9 @@
 #define DEBUG 1
 
 #ifdef DEBUG
-#define debug(format, ...) printf("%s:%d: " format "\n", __FILE__, __LINE__, ##__VA_ARGS__)
+	#define debug(format, ...) printf("%s:%d: " format "\n", __FILE__, __LINE__, ##__VA_ARGS__)
+#else
+	#define debug(format, ...) do { printf("") } while (0)
 #endif
 
 #include <stdio.h>
@@ -69,7 +71,36 @@ ecode pattern_create(struct Node* pattern,int* length,const char* raw) {
 	return STATUS_SUCCESS;
 }
 
-int pattern_match(struct Node* pattern,const int length,const char* input) {
+struct Match* longest_match(struct Match* matches,const int length) {
+	int max_idx,max_len;
+	int cur_len,i;
+	struct Match* match;
+	
+	debug("===== matches =====");
+	max_idx = -1;
+	max_len = 0;
+	for(i = 0;i < length;i++) {
+		debug("one");
+		cur_len = matches[i].pos_cur - matches[i].pos_start + 1;
+		debug("two");
+		if (cur_len > max_len) {
+			max_idx = i;
+			max_len = cur_len;
+			
+			debug("set max length %d at %d",max_len,max_idx);
+		}
+	}
+	
+	match = NULL;
+	if (max_idx > -1) {
+		match = malloc(sizeof(*match));
+		memcpy(match,&matches[max_idx],sizeof(*match));
+	}
+	
+	return match;
+}
+
+struct Match* pattern_match(struct Node* pattern,const int length,const char* input) {
 	int i,l;
 	struct Match *stack;
 	struct Match *matches;
@@ -149,32 +180,39 @@ int pattern_match(struct Node* pattern,const int length,const char* input) {
 		}
 	}
 	
-	debug("===== matches =====");
-	for(i = 0;i < matches_pos;i++) {
-		debug("found match from %d to %d",matches[i].pos_start,matches[i].pos_cur);
-		// instead find best match
-	}
+	match = longest_match(matches,matches_pos);
 	
 	free(stack);
 	free(matches);
 	
-	return -1;
+	return match;
 }
 
 int main(int argc, char** argv) {
 	struct Node* pattern;
 	int pattern_length = 100;
+	struct Match* match;
 	
 	if (argc != 3) {
 		debug("usage: regex <pattern> <input>");
 		return STATUS_MISSING_ARGS;
 	}
 	
-	pattern = (struct Node*)malloc(sizeof(struct Node) * pattern_length);
+	pattern = malloc(sizeof(struct Node) * pattern_length);
 	
 	pattern_create(pattern,&pattern_length,argv[1]);
 	
-	debug("pattern starts at: %d",pattern_match(pattern,pattern_length,argv[2]));
+	match = pattern_match(pattern,pattern_length,argv[2]);
+	
+	if (match == NULL) {
+		debug("no match found");
+	}
+	else {
+		debug("best match is (%d,%d): %.*s",
+			match->pos_start,
+			match->pos_cur,
+			(match->pos_cur - match->pos_start + 1),(argv[2] + match->pos_start));
+	}
 	
 	free(pattern);
 	
