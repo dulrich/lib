@@ -1,10 +1,16 @@
 #define DEBUG 1
 
 #ifdef DEBUG
-	#define debug(format, ...) printf("%s:%d: " format "\n", __FILE__, __LINE__, ##__VA_ARGS__)
+	#define debug(level,format, ...) if (DEBUG <= level) printf("%s:%d: " format "\n", __FILE__, __LINE__, ##__VA_ARGS__)
 #else
-	#define debug(format, ...) do { printf("") } while (0)
+	#define debug(level,format, ...) do { printf("") } while (0)
 #endif
+
+typedef enum {
+	L_STEP = 0,
+	L_DBUG = 1,
+	L_PROD = 2
+} DebugLevel;
 
 #include <stdio.h>
 #include <stdint.h>
@@ -15,6 +21,8 @@ typedef unsigned int ecode;
 #define STATUS_SUCCESS 0
 #define STATUS_MISSING_ARGS 1
 #define STATUS_RAW_PATTERN_TOO_LONG 2
+#define STATUS_INVALID_OPTIONAL 3
+#define STATUS_INVALID_REPEAT 4
 
 typedef enum {
 	TEST_NONE = 0,
@@ -47,16 +55,29 @@ ecode pattern_create(struct Node* pattern,int* length,const char* raw) {
 	}
 	
 	for(i = 0,n = 0;i < l;i++) {
-		debug("processing node %d (%c)",i,raw[i]);
+		debug(L_STEP,"processing node %d (%c)",i,raw[i]);
 		
 		switch(raw[i]) {
 		case '?':
-			debug("set optional %d",n);
+			if (n == 0) return STATUS_INVALID_OPTIONAL;
+			
+			debug(L_STEP,"set optional %d",n);
 			pattern[n - 1].optional = 1;
 			pattern[n - 1].index_fail = n;
 			break;
+		case '+':
+			if (n == 0) return STATUS_INVALID_REPEAT;
+			
+			debug(L_STEP,"set repeat %d",n);
+			pattern[n].pattern = pattern[n - 1].pattern;
+			pattern[n].test = TEST_NONE;
+			pattern[n].optional = 1;
+			pattern[n].index_match = n;
+			pattern[n].index_fail = n + 1;
+			n++;
+			break;
 		default:
-			debug("set pattern %d (%c)",n,raw[i]);
+			debug(L_STEP,"set pattern %d (%c)",n,raw[i]);
 			pattern[n].pattern = raw[i];
 			pattern[n].test = TEST_NONE;
 			pattern[n].optional = 0;
@@ -64,6 +85,15 @@ ecode pattern_create(struct Node* pattern,int* length,const char* raw) {
 			pattern[n].index_fail = -1;
 			n++;
 		}
+	}
+	
+	for(i = 0;i < l;i++) {
+		debug(L_DBUG,"%d: [%c]%s (%d,%d)",
+			i,
+			pattern[i].pattern,
+			pattern[i].optional ? "?" : "",
+			pattern[i].index_match,
+			pattern[i].index_fail);
 	}
 	
 	*length = n;
@@ -76,7 +106,7 @@ struct Match* longest_match(const struct Match* matches,const int length) {
 	int cur_len,i;
 	struct Match* match;
 	
-	debug("===== matches =====");
+	debug(L_DBUG,"===== matches =====");
 	max_idx = -1;
 	max_len = 0;
 	for(i = 0;i < length;i++) {
@@ -86,7 +116,7 @@ struct Match* longest_match(const struct Match* matches,const int length) {
 			max_idx = i;
 			max_len = cur_len;
 			
-			debug("set max length %d at %d",max_len,max_idx);
+			debug(L_DBUG,"set max length %d at %d",max_len,max_idx);
 		}
 	}
 	
@@ -131,7 +161,7 @@ struct Match* pattern_match(struct Node* pattern,const int length,const char* in
 		}
 		
 		if (match->index == length && match->pos_start != -1) {
-			debug("setting match %d (%d to %d) from stack %d",
+			debug(L_DBUG,"setting match %d (%d to %d) from stack %d",
 				matches_pos,
 				match->pos_start,
 				match->pos_cur,
@@ -155,7 +185,7 @@ struct Match* pattern_match(struct Node* pattern,const int length,const char* in
 			
 			stack[stack_pos].index = pattern[match->index].index_fail;
 			
-			debug("optional added to stack[%d] (%d to %d)",
+			debug(L_STEP,"optional added to stack[%d] (%d to %d)",
 				stack_pos,
 				match->pos_start,
 				match->pos_cur);
@@ -167,7 +197,7 @@ struct Match* pattern_match(struct Node* pattern,const int length,const char* in
 			
 			if (match->pos_start == -1) match->pos_start = match->pos_cur;
 			
-			debug("incremented pos_cur to %d",match->pos_cur);
+			debug(L_STEP,"incremented pos_cur to %d",match->pos_cur);
 		}
 		else {
 			match->index = -1;
@@ -188,7 +218,7 @@ int main(int argc, char** argv) {
 	struct Match* match;
 	
 	if (argc != 3) {
-		debug("usage: regex <pattern> <input>");
+		debug(L_PROD,"usage: regex <pattern> <input>");
 		return STATUS_MISSING_ARGS;
 	}
 	
@@ -199,10 +229,10 @@ int main(int argc, char** argv) {
 	match = pattern_match(pattern,pattern_length,argv[2]);
 	
 	if (match == NULL) {
-		debug("no match found");
+		debug(L_PROD,"no match found");
 	}
 	else {
-		debug("best match is (%d,%d): %.*s",
+		debug(L_PROD,"best match is (%d,%d): %.*s",
 			match->pos_start,
 			match->pos_cur,
 			(match->pos_cur - match->pos_start + 1),(argv[2] + match->pos_start - 1));
@@ -211,7 +241,7 @@ int main(int argc, char** argv) {
 	free(match);
 	free(pattern);
 	
-	debug("done");
+	debug(L_DBUG,"done");
 	
 	return 0;
 }
