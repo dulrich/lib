@@ -2,13 +2,16 @@ CC=	gcc
 CFLAGS=	-W -Wall -g
 STRUCT=	queue
 
-.PHONY: all clean mem
+.PHONY: all clean memtest run
 
 all:
-	$(CC) $(CFLAGS) $(STRUCT).c -o $(STRUCT)
+	$(CC) $(CFLAGS) main.c -o $(STRUCT)
 
 clean:
 	rm -rf $(STRUCT) *.exe *.dSYM *.obj
 
-mem: all
+memtest: all
 	valgrind ./$(STRUCT)
+
+run:
+	./$(STRUCT)
