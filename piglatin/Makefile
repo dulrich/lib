@@ -1,6 +1,6 @@
 CC     = gcc
 DEBUG  = -W -Wall -I.. -pthread
-STRUCT = regex
+STRUCT = piglatin
 
 .PHONY: all clean memtest run
 
@@ -11,7 +11,7 @@ clean:
 	rm -rf $(STRUCT)
 
 memtest:
-	valgrind ./$(STRUCT) pea peanut
+	valgrind ./$(STRUCT) I was the classy walrus
 
 run:
 	./$(STRUCT)
