@@ -20,6 +20,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 typedef uint xcode;
 
@@ -30,6 +31,26 @@ enum {
 	,X_LIST_UNDERFLOW
 	,X_STACK_UNDERFLOW
 	,X_QUEUE_UNDERFLOW
+	,X_MISSING_ARGS
+	,X_RAW_PATTERN_TOO_LONG
+	,X_INVALID_OPTIONAL
+	,X_INVALID_REPEAT
 };
+
+#ifdef DEBUG
+	#define debug(level,format, ...) do { \
+		if (DEBUG <= level) { \
+			printf("%s:%d: " format "\n", __FILE__, __LINE__, ##__VA_ARGS__); \
+		} \
+	} while (0)
+#else
+	#define debug(level,format, ...) do {} while (0)
+#endif
+
+typedef enum {
+	L_STEP = 0,
+	L_DBUG = 1,
+	L_PROD = 2
+} DebugLevel;
 
 #endif // DULIB_LIB_H

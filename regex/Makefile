@@ -1,19 +1,17 @@
 CC     = gcc
-DEBUG  = -g
-CFLAGS = -W -Wall -I.. -pthread
+DEBUG  = -W -Wall -I.. -pthread
+STRUCT = regex
 
 .PHONY: all clean memtest run
 
-all: | clean regex
-
-regex:
-	$(CC) $(CFLAGS) $(DEBUG) -o regex regex.c
+all:
+	$(CC) $(CFLAGS) main.c -o $(STRUCT)
 
 clean:
-	rm -rf regex
+	rm -rf $(STRUCT)
 
 memtest:
-	valgrind ./regex pea peanut
+	valgrind ./$(STRUCT) pea peanut
 
 run:
 	./regex

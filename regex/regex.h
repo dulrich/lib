@@ -14,31 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+#ifndef DULIB_REGEX_H
+#define DULIB_REGEX_H
+
 #define DEBUG 1
 
-#ifdef DEBUG
-	#define debug(level,format, ...) if (DEBUG <= level) printf("%s:%d: " format "\n", __FILE__, __LINE__, ##__VA_ARGS__)
-#else
-	#define debug(level,format, ...) do { printf("") } while (0)
-#endif
+#include "../lib.h"
 
-typedef enum {
-	L_STEP = 0,
-	L_DBUG = 1,
-	L_PROD = 2
-} DebugLevel;
-
-#include <stdio.h>
-#include <stdint.h>
-#include <stdlib.h>
-#include <string.h>
-
-typedef unsigned int ecode;
-#define STATUS_SUCCESS 0
-#define STATUS_MISSING_ARGS 1
-#define STATUS_RAW_PATTERN_TOO_LONG 2
-#define STATUS_INVALID_OPTIONAL 3
-#define STATUS_INVALID_REPEAT 4
 
 typedef enum {
 	TEST_NONE = 0,
@@ -61,13 +43,13 @@ struct Match {
 	int index;
 };
 
-ecode pattern_create(struct Node* pattern,int* length,const char* raw) {
+xcode pattern_create(struct Node* pattern,int* length,const char* raw) {
 	int i,l,n;
 	
 	l = strlen(raw);
 	
 	if (l > *length) {
-		return STATUS_RAW_PATTERN_TOO_LONG;
+		return X_RAW_PATTERN_TOO_LONG;
 	}
 	
 	for(i = 0,n = 0;i < l;i++) {
@@ -75,14 +57,14 @@ ecode pattern_create(struct Node* pattern,int* length,const char* raw) {
 		
 		switch(raw[i]) {
 		case '?':
-			if (n == 0) return STATUS_INVALID_OPTIONAL;
+			if (n == 0) return X_INVALID_OPTIONAL;
 			
 			debug(L_STEP,"set optional %d",n);
 			pattern[n - 1].optional = 1;
 			pattern[n - 1].index_fail = n;
 			break;
 		case '+':
-			if (n == 0) return STATUS_INVALID_REPEAT;
+			if (n == 0) return X_INVALID_REPEAT;
 			
 			debug(L_STEP,"set repeat %d",n);
 			pattern[n].pattern = pattern[n - 1].pattern;
@@ -114,7 +96,7 @@ ecode pattern_create(struct Node* pattern,int* length,const char* raw) {
 	
 	*length = n;
 	
-	return STATUS_SUCCESS;
+	return X_SUCCESS;
 }
 
 struct Match* longest_match(const struct Match* matches,const int length) {
@@ -228,36 +210,4 @@ struct Match* pattern_match(struct Node* pattern,const int length,const char* in
 	return match;
 }
 
-int main(int argc, char** argv) {
-	struct Node* pattern;
-	int pattern_length = 100;
-	struct Match* match;
-	
-	if (argc != 3) {
-		debug(L_PROD,"usage: regex <pattern> <input>");
-		return STATUS_MISSING_ARGS;
-	}
-	
-	pattern = malloc(sizeof(struct Node) * pattern_length);
-	
-	pattern_create(pattern,&pattern_length,argv[1]);
-	
-	match = pattern_match(pattern,pattern_length,argv[2]);
-	
-	if (match == NULL) {
-		debug(L_PROD,"no match found");
-	}
-	else {
-		debug(L_PROD,"best match is (%d,%d): %.*s",
-			match->pos_start,
-			match->pos_cur,
-			(match->pos_cur - match->pos_start + 1),(argv[2] + match->pos_start - 1));
-	}
-	
-	free(match);
-	free(pattern);
-	
-	debug(L_DBUG,"done");
-	
-	return 0;
-}
+#endif // DULIB_REGEX_H
