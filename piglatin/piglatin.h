@@ -27,12 +27,6 @@ typedef enum __attribute__ ((__packed__)) {
 	CHAR_VOWEL = 1
 } CharType;
 
-struct Char {
-	CharType t;
-	char c;
-	struct Char* next;
-};
-
 struct Word {
 	char* english;
 	char* piglatin;
