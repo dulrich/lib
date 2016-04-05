@@ -25,26 +25,26 @@
 typedef uint xcode;
 
 enum {
-	 X_SUCCESS
-	,X_NULL_PARAM
-	,X_ALLOC_FAILURE
-	,X_LIST_UNDERFLOW
-	,X_STACK_UNDERFLOW
-	,X_QUEUE_UNDERFLOW
-	,X_MISSING_ARGS
-	,X_RAW_PATTERN_TOO_LONG
-	,X_INVALID_OPTIONAL
-	,X_INVALID_REPEAT
+	X_SUCCESS,
+	X_NULL_PARAM,
+	X_ALLOC_FAILURE,
+	X_LIST_UNDERFLOW,
+	X_STACK_UNDERFLOW,
+	X_QUEUE_UNDERFLOW,
+	X_MISSING_ARGS,
+	X_RAW_PATTERN_TOO_LONG,
+	X_INVALID_OPTIONAL,
+	X_INVALID_REPEAT
 };
 
 #ifdef DEBUG
-	#define debug(level,format, ...) do { \
+	#define debug(level, format, ...) do { \
 		if (DEBUG <= level) { \
 			printf("%s:%d: " format "\n", __FILE__, __LINE__, ##__VA_ARGS__); \
 		} \
 	} while (0)
 #else
-	#define debug(level,format, ...) do {} while (0)
+#define debug(level, format, ...) do {} while (0)
 #endif
 
 typedef enum {

@@ -16,37 +16,37 @@
 
 #include "regex.h"
 
-
 int main(int argc, char** argv) {
 	struct Node* pattern;
 	int pattern_length = 100;
 	struct Match* match;
-	
+
 	if (argc != 3) {
-		debug(L_PROD,"usage: regex <pattern> <input>");
+		debug(L_PROD, "usage: regex <pattern> <input>");
 		return X_MISSING_ARGS;
 	}
-	
+
 	pattern = malloc(sizeof(struct Node) * pattern_length);
-	
-	pattern_create(pattern,&pattern_length,argv[1]);
-	
-	match = pattern_match(pattern,pattern_length,argv[2]);
-	
+
+	pattern_create(pattern, &pattern_length, argv[1]);
+
+	match = pattern_match(pattern, pattern_length, argv[2]);
+
 	if (match == NULL) {
-		debug(L_PROD,"no match found");
+		debug(L_PROD, "no match found");
 	}
 	else {
-		debug(L_PROD,"best match is (%d,%d): %.*s",
+		debug(L_PROD, "best match is (%d,%d): %.*s",
 			match->pos_start,
 			match->pos_cur,
-			(match->pos_cur - match->pos_start + 1),(argv[2] + match->pos_start - 1));
+			(match->pos_cur - match->pos_start + 1),
+			(argv[2] + match->pos_start - 1));
 	}
-	
+
 	free(match);
 	free(pattern);
-	
-	debug(L_DBUG,"done");
-	
+
+	debug(L_DBUG, "done");
+
 	return 0;
 }
