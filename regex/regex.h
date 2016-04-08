@@ -28,10 +28,16 @@ typedef enum {
 	TEST_WORD_BREAK = 3
 } Test;
 
+typedef enum {
+	OPTIONAL_REQUIRED = 0,
+	OPTIONAL_SINGLE   = 1,
+	OPTIONAL_MULTI    = 2
+} Optional;
+
 struct Node {
 	char pattern;
 	Test test;
-	uint8_t optional;
+	Optional optional;
 	int index_match;
 	int index_fail;
 };
@@ -40,6 +46,12 @@ struct Match {
 	int pos_start;
 	int pos_cur;
 	int index;
+};
+
+char const * const optional_char[] = {
+	"",
+	"?",
+	"*"
 };
 
 xcode pattern_create(struct Node* pattern, int* length, const char* raw) {
@@ -61,7 +73,7 @@ xcode pattern_create(struct Node* pattern, int* length, const char* raw) {
 			}
 
 			debug(L_STEP, "set optional %d", n);
-			pattern[n - 1].optional = 1;
+			pattern[n - 1].optional = OPTIONAL_SINGLE;
 			pattern[n - 1].index_fail = n;
 			break;
 		case '+':
@@ -72,10 +84,21 @@ xcode pattern_create(struct Node* pattern, int* length, const char* raw) {
 			debug(L_STEP, "set repeat %d", n);
 			pattern[n].pattern = pattern[n - 1].pattern;
 			pattern[n].test = TEST_NONE;
-			pattern[n].optional = 1;
+			pattern[n].optional = OPTIONAL_MULTI;
 			pattern[n].index_match = n;
 			pattern[n].index_fail = n + 1;
 			n++;
+			break;
+		case '*':
+			if (n == 0) {
+				return X_INVALID_REPEAT;
+			}
+
+			debug(L_STEP, "set star %d", n);
+			pattern[n].pattern = pattern[n - 1].pattern;
+			pattern[n - 1].optional = OPTIONAL_MULTI;
+			pattern[n - 1].index_match = n - 1;
+			pattern[n - 1].index_fail = n;
 			break;
 		default:
 			debug(L_STEP, "set pattern %d (%c)", n, raw[i]);
@@ -92,7 +115,7 @@ xcode pattern_create(struct Node* pattern, int* length, const char* raw) {
 		debug(L_DBUG, "%d: [%c]%s (%d,%d)",
 			i,
 			pattern[i].pattern,
-			pattern[i].optional ? "?" : "",
+			optional_char[pattern[i].optional],
 			pattern[i].index_match,
 			pattern[i].index_fail);
 	}
